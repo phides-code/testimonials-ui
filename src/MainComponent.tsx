@@ -1,43 +1,74 @@
 import styled from 'styled-components';
 import { comments } from './comments';
 import RatingIndicator from './RatingIndicator';
+import { useContext, useState } from 'react';
+import { MobileContext } from './MobileContext';
 
 const MainComponent = () => {
+    const [carouselXOffset, setCarouselXOffset] = useState(0);
+
+    const { isMobile } = useContext(MobileContext);
+
+    const baseOffset = isMobile ? 19 : 25;
+
+    const moveCarouselRight = () => {
+        if (carouselXOffset > (comments.length - 1) * -baseOffset) {
+            setCarouselXOffset(
+                (carouselXOffset) => carouselXOffset - baseOffset
+            );
+        }
+    };
+
+    const moveCarouselLeft = () => {
+        if (carouselXOffset < 0) {
+            setCarouselXOffset(
+                (carouselXOffset) => carouselXOffset + baseOffset
+            );
+        }
+    };
+
     return (
-        <Wrapper>
+        <Wrapper $isMobile={isMobile}>
             <CarouselHeader>
-                <HeaderText>What Our Customers Are Saying</HeaderText>
+                <HeaderText $isMobile={isMobile}>
+                    What Our Customers Are Saying
+                </HeaderText>
                 <ButtonArea>
-                    <ArrowButton>{'<'}</ArrowButton>
-                    <ArrowButton>{'>'}</ArrowButton>
+                    <ArrowButton onClick={moveCarouselLeft}>{'<'}</ArrowButton>
+                    <ArrowButton onClick={moveCarouselRight}>{'>'}</ArrowButton>
                 </ButtonArea>
             </CarouselHeader>
-            <Carousel>
-                {comments.map((comment, i) => (
-                    <CommentCard
-                        key={i}
-                        $pastelColor={comment.color.Pastel}
-                        $color={comment.color.Standard}
-                    >
-                        <RatingIndicator
-                            color={comment.color.Standard}
-                            rating={comment.rating}
-                        />
-                        <CommentTitle>{comment.title}</CommentTitle>
-                        <CommentContent>{comment.content}</CommentContent>
-                        <AuthorWrapper>
-                            <AuthorAvatar
-                                src={'./assets/' + comment.author.avatarUrl}
+            <Carousel $carouselXOffset={carouselXOffset}>
+                {comments
+                    .slice(carouselXOffset, comments.length)
+                    .map((comment, i) => (
+                        <CommentCard
+                            key={i}
+                            $pastelColor={comment.color.Pastel}
+                            $color={comment.color.Standard}
+                            $isMobile={isMobile}
+                        >
+                            <RatingIndicator
+                                color={comment.color.Standard}
+                                rating={comment.rating}
                             />
-                            <AuthorInfoWrapper>
-                                <AuthorName>{comment.author.name}</AuthorName>
-                                <AuthorTitle>
-                                    {comment.author.title}
-                                </AuthorTitle>
-                            </AuthorInfoWrapper>
-                        </AuthorWrapper>
-                    </CommentCard>
-                ))}
+                            <CommentTitle>{comment.title}</CommentTitle>
+                            <CommentContent>{comment.content}</CommentContent>
+                            <AuthorWrapper>
+                                <AuthorAvatar
+                                    src={'./assets/' + comment.author.avatarUrl}
+                                />
+                                <AuthorInfoWrapper>
+                                    <AuthorName>
+                                        {comment.author.name}
+                                    </AuthorName>
+                                    <AuthorTitle>
+                                        {comment.author.title}
+                                    </AuthorTitle>
+                                </AuthorInfoWrapper>
+                            </AuthorWrapper>
+                        </CommentCard>
+                    ))}
             </Carousel>
         </Wrapper>
     );
@@ -46,12 +77,21 @@ const MainComponent = () => {
 interface CommentCardProps {
     $pastelColor: string;
     $color: string;
+    $isMobile: boolean;
 }
 
-const Wrapper = styled.div`
+interface CarouselProps {
+    $carouselXOffset: number;
+}
+
+interface MobileProps {
+    $isMobile: boolean;
+}
+
+const Wrapper = styled.div<MobileProps>`
     display: flex;
     flex-direction: column;
-    width: 60%;
+    width: ${(props) => (props.$isMobile ? '90%' : '60%')};
     overflow-x: hidden;
     padding-bottom: 1rem;
 `;
@@ -61,8 +101,8 @@ const CarouselHeader = styled.div`
     justify-content: space-between;
 `;
 
-const HeaderText = styled.div`
-    font-size: xx-large;
+const HeaderText = styled.div<MobileProps>`
+    font-size: ${(props) => (props.$isMobile ? 'x-large' : 'xx-large')};
     font-weight: bold;
     max-width: 20rem;
 `;
@@ -86,18 +126,22 @@ const ArrowButton = styled.button`
     }
 `;
 
-const Carousel = styled.div`
+const Carousel = styled.div<CarouselProps>`
     display: flex;
     margin-top: 1rem;
+    position: relative;
+    left: ${(props) => props.$carouselXOffset}rem;
+    transition: left 0.3s ease-in-out;
 `;
 
 const CommentCard = styled.div<CommentCardProps>`
     display: flex;
     flex-direction: column;
     background: ${(props) => props.$pastelColor};
-    min-width: 20rem;
+    min-width: ${(props) => (props.$isMobile ? '16rem' : '20rem')};
+    max-width: ${(props) => (props.$isMobile ? '16rem' : '20rem')};
     padding: 1rem;
-    margin-right: 3rem;
+    margin-right: ${(props) => (props.$isMobile ? '1rem' : '3rem')};
     border-radius: 16px;
     box-shadow: 5px 5px 0px 1px ${(props) => props.$color};
 `;
