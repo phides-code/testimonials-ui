@@ -1,12 +1,12 @@
 import styled from 'styled-components';
-import TestimonialsUI from './MainComponent';
+import MainComponent from './MainComponent';
 import { MobileProvider } from './MobileContext';
 
 const App = () => {
     return (
         <Wrapper>
             <MobileProvider>
-                <TestimonialsUI />
+                <MainComponent />
             </MobileProvider>
         </Wrapper>
     );
